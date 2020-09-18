@@ -1,121 +1,59 @@
 <template>
-  <v-content>
+  <div>
     <v-card>
       <v-tabs show-arrows center-active v-model="tab" class="sub-menu">
-        <v-tab v-for="item in menu" :key="item.path" :to="item.path">
-          {{ item.title }}
-        </v-tab>
+        <v-tab v-for="item in menu" :key="item.path" :to="item.path"></v-tab>
       </v-tabs>
     </v-card>
-    <v-container fluid>
-      <v-row
-        align="center"
-        justify="center"
-        no-gutters
-        :class="{ 'carousel-wrapper': true, 'as-nav-for': config.asNavFor }"
-      >
-        <v-col cols="8" class="pa-7">
-          <VueSlickCarousel
-            v-bind="config.settings"
-            :class="classes"
-            ref="c1"
-            :asNavFor="config.asNavFor ? $refs.c2 : null"
+    <div>
+      <div class="carousel-wrapper as-nav-for">
+        <VueSlickCarousel
+          v-bind="{ focusOnSelect: true }"
+          ref="c1"
+          :asNavFor="$refs.c2"
+        >
+          <div
+            v-for="(width, index) in slidesWidth"
+            :key="`${width}-${index}`"
+            :style="{ width: `${width}px` }"
           >
-            <div
-              v-for="(width, index) in slidesWidth"
-              :key="`${width}-${index}`"
-              :style="{ width: `${width}px` }"
-            >
-              <img
-                v-if="config.image"
-                :src="`https://picsum.photos/300/300?random=${index}`"
-              />
-              <h1 v-else>
-                {{ config.settings.variableWidth ? `${width}px` : index + 1 }}
-              </h1>
-            </div>
-          </VueSlickCarousel>
-        </v-col>
-      </v-row>
-      <v-row
-        v-if="config.asNavFor"
-        align="center"
-        justify="center"
-        no-gutters
-        class="carousel-wrapper as-nav-for"
-      >
-        <v-col cols="8" class="pa-7">
-          <VueSlickCarousel
-            v-bind="config.asNavFor.settings"
-            :class="classes"
-            ref="c2"
-            :asNavFor="$refs.c1"
+            <h1>
+              {{ index + 1 }}
+            </h1>
+          </div>
+        </VueSlickCarousel>
+      </div>
+      <div class="carousel-wrapper as-nav-for">
+        <VueSlickCarousel
+          v-bind="{ focusOnSelect: true, slidesToShow: 4 }"
+          ref="c2"
+          :asNavFor="$refs.c1"
+        >
+          <div
+            v-for="(width, index) in slidesWidth"
+            :key="`${width}-${index}`"
+            :style="{ width: `${width}px` }"
           >
-            <div
-              v-for="(width, index) in slidesWidth"
-              :key="`${width}-${index}`"
-              :style="{ width: `${width}px` }"
-            >
-              <h1>
-                {{
-                  config.asNavFor.settings.variableWidth
-                    ? `${width}px`
-                    : index + 1
-                }}
-              </h1>
-            </div>
-          </VueSlickCarousel>
-        </v-col>
-      </v-row>
-      <v-row class="pl-7 pr-7"><hr width="100%" /></v-row>
-      <v-row>
-        <v-col sm="12" md="6" class="pa-7">
-          <h2># Template</h2>
-          <prism language="html" :code="template" class="code"></prism>
-        </v-col>
-        <v-col v-if="config.asNavFor" sm="12" md="6" class="pa-7">
-          <h2># Template</h2>
-          <prism
-            language="html"
-            :code="config.asNavFor.template"
-            class="code"
-          ></prism>
-        </v-col>
-        <v-col v-else sm="12" md="6" class="pa-7">
-          <h2># Settings</h2>
-          <prism
-            language="javascript"
-            :code="JSON.stringify(config.settings, null, 2)"
-            class="code"
-          ></prism>
-        </v-col>
-      </v-row>
-    </v-container>
-  </v-content>
+            <h1>
+              {{ index + 1 }}
+            </h1>
+          </div>
+        </VueSlickCarousel>
+      </div>
+    </div>
+    <button @click="show = !show">show</button>
+  </div>
 </template>
 
 <script>
-import Prism from 'vue-prismjs'
-import enquire from 'enquire.js'
-
 import 'prismjs/themes/prism-tomorrow.css'
 import '@/slick-theme.css'
 
 import configs from './configs'
 
-const exampleVueTemplate = `<VueSlickCarousel v-bind="settings">
-  <div><h3>1</h3></div>
-  /*...*/
-</VueSlickCarousel>`
-
 export default {
   name: 'ExamplesPage',
-  components: {
-    Prism,
-  },
-  props: {
-    config: Object,
-  },
+
   computed: {
     slidesWidth() {
       const { min, max } =
@@ -128,18 +66,6 @@ export default {
         () => Math.floor(Math.random() * (max - min)) + min,
       )
     },
-    template() {
-      return this.config.template ? this.config.template : exampleVueTemplate
-    },
-    classes() {
-      const { asNavFor } = this.config
-      const { vertical, rows, adaptiveHeight } = this.config.settings
-
-      return {
-        'short-row': vertical || rows > 1 || asNavFor,
-        'adaptive-height': adaptiveHeight,
-      }
-    },
   },
   data() {
     const menu = Object.keys(configs).map(key => {
@@ -150,25 +76,25 @@ export default {
     })
 
     return {
+      show: false,
       tab: null,
-      screen: 'mobile',
       menu,
+      config: {
+        title: 'As Navigation For',
+        settings: {
+          focusOnSelect: true,
+        },
+        asNavFor: {
+          settings: {
+            slidesToShow: 4,
+            focusOnSelect: true,
+          },
+        },
+      },
     }
-  },
-  created() {
-    enquire.register('(min-width: 0px) and (max-width: 600px)', this.onMobile)
-    enquire.register('(min-width: 601px)', this.onDesktop)
   },
   mounted() {
     window.carousel = this.$refs.c1
-  },
-  methods: {
-    onMobile() {
-      this.screen = 'mobile'
-    },
-    onDesktop() {
-      this.screen = 'desktop'
-    },
   },
 }
 </script>
